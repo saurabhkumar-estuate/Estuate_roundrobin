@@ -7,7 +7,7 @@ export default async function handler(req, res) {
     const ticketId = req.query.ticketid;
 
     console.log({req})
-    const ticketResponse = await fetch(`${con-estps1.zendesk.com}/api/v2/tickets/${ticketId}`, {
+    const ticketResponse = await fetch(`${zendesk_url}/api/v2/tickets/${ticketId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -16,7 +16,7 @@ export default async function handler(req, res) {
     });
     const ticketData = await ticketResponse.json();
 
-    const resp = await fetch(`${con-estps1.zendesk.com}/api/v2/groups/${ticketData.ticket.group_id}/users`, {
+    const resp = await fetch(`${zendesk_url}/api/v2/groups/${ticketData.ticket.group_id}/users`, {
       method: "GET",
       headers: {
         Authorization: req.headers.authorization
@@ -54,7 +54,7 @@ export default async function handler(req, res) {
       }
 
 
-      await fetch(`${con-estps1.zendesk.com}/api/v2/tickets/${ticketId}`, {
+      await fetch(`${zendesk_url}/api/v2/tickets/${ticketId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -69,7 +69,7 @@ export default async function handler(req, res) {
         })
       })  
 
-      await fetch(`${con-estps1.zendesk.com}/api/v2/users/update_many`, {
+      await fetch(`${zendesk_url}/api/v2/users/update_many`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
