@@ -3,10 +3,11 @@ import fetch from "node-fetch";
 const zendesk_url = process.env.ZENDESK_URL;
 
 export default async function handler(req, res) {
-  try {  
+  try {
     const ticketId = req.query.ticketid;
 
-    console.log({req})
+    console.log({ query: req.query })
+    console.log({ ticketId: req.query.ticketId })
     const ticketResponse = await fetch(`${zendesk_url}/api/v2/tickets/${ticketId}`, {
       method: 'GET',
       headers: {
@@ -16,6 +17,9 @@ export default async function handler(req, res) {
     });
     const ticketData = await ticketResponse.json();
 
+
+    console.log({ ticketData });
+
     const resp = await fetch(`${zendesk_url}/api/v2/groups/${ticketData.ticket.group_id}/users`, {
       method: "GET",
       headers: {
@@ -24,28 +28,30 @@ export default async function handler(req, res) {
     });
     const usersData = await resp.json();
 
-    const alphabeticUsers = usersData.users.sort((a,b) => {
-      if(a.name < b.name) { return -1; }
-      if(a.name > b.name) { return 1; }
+    console.log({ usersData });
+
+    const alphabeticUsers = usersData.users.sort((a, b) => {
+      if (a.name < b.name) { return -1; }
+      if (a.name > b.name) { return 1; }
     })
 
     const usersInOffice = alphabeticUsers.filter((user) => !user.user_fields.agent_ooo);
     let currentAssignee;
     let nextAssignee;
-    if(usersInOffice.length > 0) {
+    if (usersInOffice.length > 0) {
 
-      if(usersInOffice.length === 1) {
+      if (usersInOffice.length === 1) {
         currentAssignee = usersInOffice[0];
         nextAssignee = usersInOffice[0];
       } else {
         currentAssignee = usersInOffice.find((user) => user.user_fields.assign_next);
-  
-        if(!currentAssignee) {
+
+        if (!currentAssignee) {
           currentAssignee = usersInOffice[0];
           nextAssignee = usersInOffice[1];
         } else {
           const currentAssigneeIndex = usersInOffice.indexOf(currentAssignee);
-          if(currentAssigneeIndex === usersInOffice.length - 1) {
+          if (currentAssigneeIndex === usersInOffice.length - 1) {
             nextAssignee = usersInOffice[0];
           } else {
             nextAssignee = usersInOffice[currentAssigneeIndex + 1]
@@ -67,7 +73,7 @@ export default async function handler(req, res) {
             assignee_id: currentAssignee.id
           }
         })
-      })  
+      })
 
       await fetch(`${zendesk_url}/api/v2/users/update_many`, {
         method: 'PUT',
@@ -77,8 +83,8 @@ export default async function handler(req, res) {
         },
         body: JSON.stringify({
           users: [
-            { 
-              id: currentAssignee.id, user_fields: { assign_next: false } 
+            {
+              id: currentAssignee.id, user_fields: { assign_next: false }
             },
             {
               id: nextAssignee.id, user_fields: { assign_next: true }
@@ -89,7 +95,7 @@ export default async function handler(req, res) {
     }
 
     res.status(200).json({ message: 'Round robin executed on ticket ' + ticketId, currentAssignee: currentAssignee ? currentAssignee.name : 'NA', nextAssignee: nextAssignee ? nextAssignee.name : '' });
-  } catch(e) {
+  } catch (e) {
     console.log(e);
   }
 }
