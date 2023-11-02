@@ -8,6 +8,7 @@ export default async function handler(req, res) {
 
     console.log({ query: req.query })
     console.log({ ticketId: req.query.ticketid })
+    console.log({ authorization: req.headers.authorization })
     const ticketResponse = await fetch(`${zendesk_url}/api/v2/tickets/${ticketId}`, {
       method: 'GET',
       headers: {
