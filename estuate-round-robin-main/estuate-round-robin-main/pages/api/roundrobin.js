@@ -7,7 +7,7 @@ export default async function handler(req, res) {
     const ticketId = req.query.ticketid;
 
     console.log({ query: req.query })
-    console.log({ ticketId: req.query.ticketId })
+    console.log({ ticketId: req.query.ticketid })
     const ticketResponse = await fetch(`${zendesk_url}/api/v2/tickets/${ticketId}`, {
       method: 'GET',
       headers: {
